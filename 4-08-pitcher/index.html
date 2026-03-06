@@ -523,7 +523,10 @@ Full project overview:
 
 Keep answers SHORT (2-4 sentences max), warm and encouraging. Use simple language for middle schoolers. Give specific, actionable Blender help. Never be negative or discouraging.`;
 
-  const messages = chatHistory.slice(-10).filter(m => m.role === "user" || m.role === "assistant");
+  // Build message history - must start with user
+  let messages = chatHistory.filter(m => m.role === "user" || m.role === "assistant").slice(-10);
+  while (messages.length > 0 && messages[0].role === "assistant") messages.shift();
+  if (messages.length === 0) messages = [{ role: "user", content: text }];
 
   try {
     const res = await fetch("https://shiny-paper-6c99.mrsloanwava.workers.dev/", {
@@ -533,7 +536,7 @@ Keep answers SHORT (2-4 sentences max), warm and encouraging. Use simple languag
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         system: systemPrompt,
-        messages: messages.length > 0 ? messages : [{ role: "user", content: text }]
+        messages: messages
       })
     });
     const data = await res.json();
