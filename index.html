@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 4.07 – What Will You Have to Drink?</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #070d14; font-family: 'Trebuchet MS', Arial, sans-serif; color: #c8dde8; min-height: 100vh; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { background: #2a3f52; border-radius: 3px; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes bounce { 0%,80%,100% { transform:translateY(0); } 40% { transform:translateY(-5px); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+.fade-in { animation: fadeIn 0.35s ease forwards; }
+
+/* Header */
+#header { background: linear-gradient(135deg, #0d3b47 0%, #061a22 100%); border-bottom: 3px solid #f4a231; padding: 20px 24px 16px; }
+#header h1 { font-size: 26px; color: #fff; font-weight: bold; margin: 6px 0 4px; }
+#header .subtitle { font-size: 13px; color: #8ab8c5; font-style: italic; }
+#header .unit-label { font-size: 10px; font-weight: bold; color: #f4a231; letter-spacing: 3px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.badge { background: #1a6b7c; color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+/* Step tabs */
+#step-tabs { display: flex; gap: 6px; margin-top: 16px; }
+.step-tab { flex: 1; padding: 9px 4px; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 11px; letter-spacing: 0.5px; transition: all 0.2s; font-family: 'Trebuchet MS', Arial, sans-serif; }
+.step-tab:hover { opacity: 0.85; }
+
+/* Layout */
+#main { max-width: 1100px; margin: 0 auto; padding: 20px 20px 40px; display: grid; grid-template-columns: 1fr 330px; gap: 20px; }
+@media (max-width: 800px) { #main { grid-template-columns: 1fr; } #chat-panel { position: static !important; height: 500px !important; } }
+
+/* Step card */
+.step-card { background: #0d1117; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+.step-header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; }
+.step-badge { background: rgba(0,0,0,0.2); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: bold; letter-spacing: 1px; }
+.step-title { font-size: 17px; font-weight: bold; }
+.step-subtitle { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+.step-body { display: grid; grid-template-columns: 1fr 1fr; }
+.diagram-col { padding: 16px; border-right: 1px solid #1e3040; }
+.instructions-col { padding: 16px; }
+
+/* Instructions */
+.inst-item { display: flex; gap: 12px; margin-bottom: 14px; }
+.inst-num { width: 24px; height: 24px; min-width: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+.inst-title { font-size: 13px; font-weight: bold; color: #e8f4f7; margin-bottom: 2px; }
+.inst-body { font-size: 12px; color: #8ab8c5; line-height: 1.5; }
+.tip-box { border-left: 4px solid; border-radius: 0 6px 6px 0; padding: 10px 12px; font-size: 12px; color: #c8dde8; line-height: 1.55; margin-top: 14px; }
+.screenshot-bar { border-top: 2px dashed; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #c8dde8; }
+.screenshot-bar strong { color: #e8f4f7; }
+
+/* Checklist */
+.checklist-card { background: #0d1117; border: 1px solid #1e3040; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+.checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.checklist-title { font-size: 14px; font-weight: bold; color: #e8f4f7; }
+.checklist-count { font-size: 12px; }
+.progress-bar-bg { height: 4px; background: #1a2535; border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+.check-item { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; border: 1px solid #1e3040; transition: all 0.2s; }
+.check-item:hover { background: #0f1e2e !important; }
+.check-box { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #2a3f52; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s; flex-shrink: 0; }
+.check-label { font-size: 13px; color: #8ab8c5; }
+.complete-btn { width: 100%; margin-top: 14px; padding: 12px; border-radius: 8px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px; font-family: 'Trebuchet MS', Arial, sans-serif; }
+.complete-btn:disabled { cursor: not-allowed; }
+
+/* AI Chat */
+#chat-panel { position: sticky; top: 20px; height: calc(100vh - 160px); }
+#chat-box { display: flex; flex-direction: column; height: 100%; background: #0d1117; border-radius: 12px; overflow: hidden; border: 1px solid #1e3040; }
+#chat-header { background: linear-gradient(135deg, #0d3b47, #1a6b7c); padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+#chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: #f4a231; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+#chat-name { color: #fff; font-weight: bold; font-size: 14px; }
+#chat-status { color: #8ab8c5; font-size: 11px; }
+#chat-online { width: 8px; height: 8px; background: #27ae60; border-radius: 50%; margin-left: auto; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.msg { max-width: 88%; padding: 9px 13px; font-size: 13px; line-height: 1.55; }
+.msg-ai { background: #1a2535; color: #c8dde8; border-radius: 16px 16px 16px 4px; align-self: flex-start; }
+.msg-user { background: #f4a231; color: #0d3b47; border-radius: 16px 16px 4px 16px; align-self: flex-end; font-weight: 600; }
+#typing-indicator { display: none; align-self: flex-start; padding: 10px 14px; gap: 5px; }
+#typing-indicator.visible { display: flex; }
+.typing-dot { width: 7px; height: 7px; background: #28a0b5; border-radius: 50%; animation: bounce 1.2s infinite; }
+#quick-prompts { padding: 8px 14px 4px; display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.quick-btn { background: #1a2535; border: 1px solid #2a3f52; color: #8ab8c5; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; font-family: 'Trebuchet MS', Arial, sans-serif; transition: all 0.15s; }
+.quick-btn:hover { background: #243040; color: #c8dde8; }
+#chat-input-row { padding: 10px 14px 14px; display: flex; gap: 8px; flex-shrink: 0; }
+#chat-input { flex: 1; background: #1a2535; border: 1px solid #2a3f52; border-radius: 24px; padding: 9px 14px; color: #c8dde8; font-size: 13px; outline: none; font-family: 'Trebuchet MS', Arial, sans-serif; }
+#chat-input:focus { border-color: #28a0b5; }
+#send-btn { width: 40px; height: 40px; border-radius: 50%; background: #2a3f52; border: none; cursor: pointer; font-size: 18px; color: #c8dde8; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
+#send-btn.active { background: #f4a231; color: #0d3b47; }
+
+/* Done panel */
+#done-panel { display: none; background: linear-gradient(135deg, #0d3b47, #061a22); border: 2px solid #f4a231; border-radius: 12px; padding: 20px; }
+#done-panel.visible { display: block; animation: fadeIn 0.4s ease; }
+#done-panel h3 { font-size: 20px; color: #f4a231; margin-bottom: 8px; }
+#done-panel p { font-size: 13px; color: #c8dde8; margin-bottom: 14px; }
+.done-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.done-item { background: #0d2018; border: 1px solid #27ae60; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #7de0a0; }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div id="header">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="unit-label">UNIT 4 · ACTIVITY 1</div>
+        <h1>What Will You Have to Drink?</h1>
+        <div class="subtitle">Create a 3D pitcher using NURBS, Curves &amp; Surfaces · Project 4.07</div>
+      </div>
+      <div class="badges">
+        <div class="badge">🎯 40 Points</div>
+        <div class="badge">📸 4 Screenshots</div>
+        <div class="badge">📊 PowerPoint</div>
+      </div>
+    </div>
+    <div id="step-tabs" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+  <!-- Left column -->
+  <div id="left-col">
+    <div id="step-content"></div>
+    <div id="checklist-area"></div>
+    <div id="done-panel">
+      <h3>🏆 All Steps Complete!</h3>
+      <p>You've finished all 4 steps. Make sure your PowerPoint has all 4 screenshots with captions, then submit!</p>
+      <div class="done-grid">
+        <div class="done-item">✓ Pitcher body (Screw Modifier)</div>
+        <div class="done-item">✓ Handle (Extrude Along Path)</div>
+        <div class="done-item">✓ Both objects converted to mesh</div>
+        <div class="done-item">✓ Both named + handle parented</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: AI Chat -->
+  <div id="chat-panel">
+    <div id="chat-box">
+      <div id="chat-header">
+        <div id="chat-avatar">🤖</div>
+        <div>
+          <div id="chat-name">Blender AI Assistant</div>
+          <div id="chat-status">Ask me anything about this project</div>
+        </div>
+        <div id="chat-online"></div>
+      </div>
+      <div id="chat-messages">
+        <div class="msg msg-ai">Hi! I'm your Blender assistant for Project 4.07. I can help you with any step — just ask, or tap one of the quick buttons below! 🎨</div>
+      </div>
+      <div id="typing-indicator">
+        <div class="typing-dot" style="animation-delay:0s"></div>
+        <div class="typing-dot" style="animation-delay:0.2s"></div>
+        <div class="typing-dot" style="animation-delay:0.4s"></div>
+      </div>
+      <div id="quick-prompts">
+        <button class="quick-btn" onclick="quickSend('I am stuck, help!')">🆘 I'm stuck</button>
+        <button class="quick-btn" onclick="quickSend('Give me a hint for this step')">💡 Hint</button>
+        <button class="quick-btn" onclick="quickSend('What should I do next?')">➡️ What next?</button>
+        <button class="quick-btn" onclick="quickSend('Why do we do this step?')">🤔 Why?</button>
+      </div>
+      <div id="chat-input-row">
+        <input id="chat-input" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')sendChat()" oninput="updateSendBtn()"/>
+        <button id="send-btn" onclick="sendChat()">↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ DATA ══════════════════════════════════════════════════════════════════════
+
+const STEPS = [
+  {
+    id: 1, label: "STEP 1A", color: "#f4a231", textColor: "#0d3b47",
+    title: "Draw the Pitcher Profile",
+    subtitle: "Add a Bezier Curve and draw the half-outline of your pitcher",
+    diagram: "curve",
+    instructions: [
+      { n:1, title:"Add a Bezier Curve", body:"Go to <strong>Add &gt; Curve &gt; Bezier</strong>. Then press <strong>Tab</strong> to enter Edit Mode." },
+      { n:2, title:"Select the Draw Tool", body:"Press <strong>T</strong> to open the Toolbar. Click the <strong>Draw Tool</strong> (pencil icon) at the top." },
+      { n:3, title:"Draw the Pitcher Profile", body:"Click along the right side of the viewport to draw the half-outline of a pitcher — from bottom to rim." },
+      { n:4, title:"Snap Ends to the Z Axis", body:"Turn on Snapping (<strong>Shift+Tab</strong>). Move top and bottom points onto the center Z axis (red line)." },
+    ],
+    tip: "Only draw ONE side of the pitcher — from base to rim. Both end points must sit right on the vertical Z axis!",
+    screenshot: "Screenshot #1 — Your curve in Edit Mode with both ends snapped to the Z axis",
+    checklist: ["Added a Bezier Curve (Add > Curve > Bezier)","Entered Edit Mode (Tab)","Selected the Draw Tool (T key)","Drew the pitcher half-profile","Snapped both ends to the Z axis"],
+  },
+  {
+    id: 2, label: "STEP 1B", color: "#f4a231", textColor: "#0d3b47",
+    title: "Apply the Screw Modifier",
+    subtitle: "Spin your profile curve into a full 3D pitcher body",
+    diagram: "screw",
+    instructions: [
+      { n:1, title:"Exit Edit Mode", body:"Press <strong>Tab</strong> to return to Object Mode. Your curve should still be selected." },
+      { n:2, title:"Open Modifier Properties", body:"Click the blue <strong>wrench icon 🔧</strong> in the Properties panel on the right." },
+      { n:3, title:"Add the Screw Modifier", body:"Click <strong>Add Modifier</strong>, then choose <strong>Screw</strong>. Watch your 3D pitcher body appear!" },
+      { n:4, title:"Adjust and Apply", body:"Set <strong>Axis to Z</strong>. Increase Steps for a smoother shape. Click <strong>Apply</strong>." },
+    ],
+    tip: "The Screw Modifier spins your profile curve around the Z axis — like a potter's wheel! If it looks wrong, Ctrl+Z and edit your curve.",
+    screenshot: "Screenshot #2 — Full 3D pitcher body in Object Mode after Screw Modifier applied",
+    checklist: ["Exited Edit Mode (Tab)","Opened Modifier Properties (wrench icon)","Added the Screw Modifier","Set Axis to Z","Clicked Apply"],
+  },
+  {
+    id: 3, label: "STEP 2", color: "#1a6b7c", textColor: "#ffffff",
+    title: "Create the Handle",
+    subtitle: "Extrude a curve along a path to build a 3D handle",
+    diagram: "handle",
+    instructions: [
+      { n:1, title:"Draw the Handle Path", body:"Add a new Bezier Curve (<strong>Add &gt; Curve &gt; Bezier</strong>). Shape it into a curved arc on the side of the pitcher." },
+      { n:2, title:"Draw the Cross-Section", body:"Add a circle curve (<strong>Add &gt; Curve &gt; Circle</strong>). This becomes the thickness and shape of the handle." },
+      { n:3, title:"Set the Bevel Object", body:"Select your handle path. In <strong>Properties &gt; Curve &gt; Geometry &gt; Bevel &gt; Object</strong>, pick your circle curve." },
+      { n:4, title:"Adjust and Position", body:"Edit the handle path in Edit Mode until it fits neatly on the side of the pitcher body." },
+    ],
+    tip: "Extrude Along a Path is like squeezing clay through a cookie cutter along a track. The circle is the cutter — the path is the track!",
+    screenshot: "Screenshot #3 — Pitcher body and handle both visible, both named in Outliner",
+    checklist: ["Drew the handle path curve","Added a circle curve for cross-section","Set the Bevel Object to the circle","Positioned handle on the pitcher","Both objects named in Outliner"],
+  },
+  {
+    id: 4, label: "STEP 3", color: "#27ae60", textColor: "#ffffff",
+    title: "Finish, Name, Parent & Save",
+    subtitle: "Convert to mesh, name objects, parent them together, and save",
+    diagram: "final",
+    instructions: [
+      { n:1, title:"Convert Curves to Meshes", body:"Select each object. Press <strong>F3</strong>, search <strong>Convert to Mesh</strong>, click it. Do this for both objects." },
+      { n:2, title:"Name Your Objects", body:"Click an object, then in <strong>Properties &gt; Object Properties</strong>, type <strong>Pitcher_Body</strong> or <strong>Pitcher_Handle</strong>." },
+      { n:3, title:"Parent the Handle", body:"Click the handle, then <strong>Shift+click</strong> the pitcher body. Press <strong>Ctrl+P</strong> and choose <strong>Object</strong>." },
+      { n:4, title:"Save Your File", body:"Press <strong>Ctrl+S</strong>. Give it a clear filename, then take your final screenshot!" },
+    ],
+    tip: "Parenting means when you move the pitcher, the handle follows. Good naming + parenting = professional 3D workflow!",
+    screenshot: "Screenshot #4 — Completed pitcher with Outliner showing named, parented objects",
+    checklist: ["Converted both objects to mesh (F3 > Convert to Mesh)","Named objects: Pitcher_Body and Pitcher_Handle","Parented handle to pitcher body (Ctrl+P)","Saved the file (Ctrl+S)"],
+  },
+];
+
+// ══ DIAGRAMS (SVG strings) ════════════════════════════════════════════════════
+
+function diagramCurve() {
+  return `<svg width="100%" viewBox="0 0 220 200" style="display:block;background:#0d1117;">
+    <line x1="44" y1="0" x2="44" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="88" y1="0" x2="88" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="132" y1="0" x2="132" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="176" y1="0" x2="176" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="50" x2="220" y2="50" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="100" x2="220" y2="100" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="150" x2="220" y2="150" stroke="#1a2530" stroke-width="1"/>
+    <line x1="110" y1="0" x2="110" y2="200" stroke="#8b3030" stroke-width="2"/>
+    <text x="113" y="13" fill="#c04040" font-size="10" font-family="monospace">Z</text>
+    <path d="M110,18 Q130,18 148,32 Q168,55 172,100 Q168,145 148,168 Q130,182 110,182" fill="none" stroke="#dc5050" stroke-width="2.5"/>
+    <circle cx="110" cy="18" r="6" fill="#27ae60" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="110" cy="182" r="6" fill="#27ae60" stroke="#fff" stroke-width="1.5"/>
+    <text x="117" y="15" fill="#27ae60" font-size="8" font-family="monospace">snapped</text>
+    <text x="117" y="186" fill="#27ae60" font-size="8" font-family="monospace">snapped</text>
+    <circle cx="148" cy="32" r="4" fill="#f4a231" stroke="#fff" stroke-width="1"/>
+    <circle cx="172" cy="100" r="4" fill="#f4a231" stroke="#fff" stroke-width="1"/>
+    <circle cx="148" cy="168" r="4" fill="#f4a231" stroke="#fff" stroke-width="1"/>
+  </svg>`;
+}
+
+function diagramScrew() {
+  return `<svg width="100%" viewBox="0 0 220 200" style="display:block;background:#0d1117;">
+    <line x1="44" y1="0" x2="44" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="110" y1="0" x2="110" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="176" y1="0" x2="176" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="66" x2="220" y2="66" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="133" x2="220" y2="133" stroke="#1a2530" stroke-width="1"/>
+    <path d="M62,175 Q60,140 64,100 Q66,60 82,42 Q92,38 100,38 Q108,38 118,42 Q134,60 136,100 Q140,140 138,175 Z" fill="#1a6b7c" fill-opacity="0.45"/>
+    <line x1="63" y1="145" x2="137" y2="145" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.7"/>
+    <line x1="62" y1="115" x2="138" y2="115" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.7"/>
+    <line x1="64" y1="87" x2="136" y2="87" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.7"/>
+    <line x1="68" y1="62" x2="132" y2="62" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.7"/>
+    <path d="M62,175 Q60,140 64,100 Q66,60 82,42" fill="none" stroke="#28a0b5" stroke-width="2"/>
+    <path d="M138,175 Q140,140 136,100 Q134,60 118,42" fill="none" stroke="#28a0b5" stroke-width="2"/>
+    <ellipse cx="100" cy="175" rx="38" ry="5" fill="#1a6b7c" stroke="#28a0b5" stroke-width="1.5"/>
+    <ellipse cx="100" cy="38" rx="18" ry="4" fill="#1a6b7c" stroke="#28a0b5" stroke-width="1.5"/>
+    <rect x="128" y="8" width="84" height="82" rx="4" fill="#1e2228" stroke="#28a0b5" stroke-width="1"/>
+    <text x="134" y="22" fill="#28a0b5" font-size="8" font-family="monospace" font-weight="bold">⚙ Modifier Properties</text>
+    <text x="134" y="35" fill="#ffffff" font-size="8" font-family="monospace">▼ Screw</text>
+    <text x="142" y="46" fill="#8ab8c5" font-size="7.5" font-family="monospace">Axis: Z</text>
+    <text x="142" y="57" fill="#8ab8c5" font-size="7.5" font-family="monospace">Steps: 32</text>
+    <rect x="136" y="63" width="46" height="16" rx="3" fill="#27ae60"/>
+    <text x="151" y="74" fill="#fff" font-size="8.5" font-family="monospace" font-weight="bold">Apply</text>
+  </svg>`;
+}
+
+function diagramHandle() {
+  return `<svg width="100%" viewBox="0 0 220 200" style="display:block;background:#0d1117;">
+    <line x1="44" y1="0" x2="44" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="110" y1="0" x2="110" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="176" y1="0" x2="176" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="100" x2="220" y2="100" stroke="#1a2530" stroke-width="1"/>
+    <path d="M54,175 Q52,140 56,100 Q58,60 74,42 Q84,38 92,38 Q100,38 108,42 Q122,60 124,100 Q128,140 126,175 Z" fill="#1a6b7c" fill-opacity="0.45"/>
+    <path d="M54,175 Q52,140 56,100 Q58,60 74,42" fill="none" stroke="#28a0b5" stroke-width="2"/>
+    <path d="M126,175 Q128,140 124,100 Q122,60 108,42" fill="none" stroke="#28a0b5" stroke-width="2"/>
+    <ellipse cx="90" cy="175" rx="36" ry="5" fill="#1a6b7c" stroke="#28a0b5" stroke-width="1.5"/>
+    <ellipse cx="90" cy="38" rx="16" ry="4" fill="#1a6b7c" stroke="#28a0b5" stroke-width="1.5"/>
+    <path d="M126,72 Q168,72 168,108 Q168,144 126,144" fill="none" stroke="#f4a231" stroke-width="10" stroke-linecap="round"/>
+    <path d="M126,72 Q168,72 168,108 Q168,144 126,144" fill="none" stroke="#0d1117" stroke-width="4" stroke-linecap="round"/>
+    <rect x="2" y="6" width="82" height="56" rx="3" fill="#1e2228" stroke="#1a6b7c" stroke-width="1"/>
+    <text x="7" y="18" fill="#4a6a7a" font-size="7.5" font-family="monospace">⊞ Scene Collection</text>
+    <text x="11" y="29" fill="#28a0b5" font-size="7.5" font-family="monospace">▷ Pitcher_Body</text>
+    <text x="11" y="40" fill="#f4a231" font-size="7.5" font-family="monospace">▷ Pitcher_Handle</text>
+    <text x="7" y="53" fill="#27ae60" font-size="7" font-family="monospace">Both named ✓</text>
+  </svg>`;
+}
+
+function diagramFinal() {
+  return `<svg width="100%" viewBox="0 0 220 200" style="display:block;background:#0d1117;">
+    <line x1="44" y1="0" x2="44" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="110" y1="0" x2="110" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="176" y1="0" x2="176" y2="200" stroke="#1a2530" stroke-width="1"/>
+    <line x1="0" y1="100" x2="220" y2="100" stroke="#1a2530" stroke-width="1"/>
+    <path d="M54,175 Q52,140 56,100 Q58,60 74,42 Q84,38 92,38 Q100,38 108,42 Q122,60 124,100 Q128,140 126,175 Z" fill="#1a6b7c" fill-opacity="0.45"/>
+    <line x1="55" y1="145" x2="125" y2="145" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.6"/>
+    <line x1="54" y1="115" x2="126" y2="115" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.6"/>
+    <line x1="56" y1="87" x2="124" y2="87" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.6"/>
+    <line x1="60" y1="62" x2="120" y2="62" stroke="#28a0b5" stroke-width="1" stroke-opacity="0.6"/>
+    <path d="M54,175 Q52,140 56,100 Q58,60 74,42" fill="none" stroke="#f4a231" stroke-width="2.5"/>
+    <path d="M126,175 Q128,140 124,100 Q122,60 108,42" fill="none" stroke="#f4a231" stroke-width="2.5"/>
+    <ellipse cx="90" cy="175" rx="36" ry="5" fill="#1a6b7c" stroke="#f4a231" stroke-width="2.5"/>
+    <ellipse cx="90" cy="38" rx="16" ry="4" fill="#1a6b7c" stroke="#f4a231" stroke-width="2.5"/>
+    <path d="M126,72 Q168,72 168,108 Q168,144 126,144" fill="none" stroke="#f4a231" stroke-width="10" stroke-linecap="round"/>
+    <path d="M126,72 Q168,72 168,108 Q168,144 126,144" fill="none" stroke="#0d1117" stroke-width="4" stroke-linecap="round"/>
+    <rect x="2" y="4" width="88" height="72" rx="3" fill="#1e2228" stroke="#27ae60" stroke-width="1.5"/>
+    <text x="7" y="17" fill="#4a6a7a" font-size="7.5" font-family="monospace">⊞ Scene Collection</text>
+    <text x="11" y="28" fill="#28a0b5" font-size="7.5" font-family="monospace">▼ Pitcher_Body ✓</text>
+    <text x="18" y="39" fill="#f4a231" font-size="7.5" font-family="monospace">└ Pitcher_Handle ✓</text>
+    <text x="22" y="50" fill="#27ae60" font-size="7" font-family="monospace">(parented)</text>
+    <text x="7" y="62" fill="#27ae60" font-size="7" font-family="monospace">Mesh ✓   Saved ✓</text>
+  </svg>`;
+}
+
+const DIAGRAMS = { curve: diagramCurve, screw: diagramScrew, handle: diagramHandle, final: diagramFinal };
+const DIAGRAM_LABELS = {
+  curve: ["#f4a231","#0d3b47","EXAMPLE · Curve Profile in Edit Mode"],
+  screw: ["#f4a231","#0d3b47","EXAMPLE · Pitcher Body After Screw Modifier"],
+  handle: ["#1a6b7c","#ffffff","EXAMPLE · Handle Added — Both Objects Visible"],
+  final: ["#27ae60","#ffffff","EXAMPLE · Final Pitcher — Named & Parented"],
+};
+
+// ══ STATE ═════════════════════════════════════════════════════════════════════
+
+let currentStep = 0;
+let checked = {};
+let completedSteps = new Set();
+let chatHistory = [];
+
+// ══ RENDER ════════════════════════════════════════════════════════════════════
+
+function renderTabs() {
+  const container = document.getElementById("step-tabs");
+  container.innerHTML = STEPS.map((s, i) => {
+    const done = completedSteps.has(s.id);
+    const active = i === currentStep;
+    const bg = active ? s.color : done ? "#1a3a2a" : "#1a2535";
+    const col = active ? s.textColor : done ? "#27ae60" : "#5a8a96";
+    return `<button class="step-tab" onclick="goStep(${i})" style="background:${bg};color:${col};">${done ? "✓ " : ""}${s.label}</button>`;
+  }).join("");
+}
+
+function renderStep() {
+  const s = STEPS[currentStep];
+  const [dBg, dText, dLabel] = DIAGRAM_LABELS[s.diagram];
+
+  const instrHTML = s.instructions.map(inst => `
+    <div class="inst-item">
+      <div class="inst-num" style="background:${s.color};color:${s.textColor};">${inst.n}</div>
+      <div>
+        <div class="inst-title">${inst.title}</div>
+        <div class="inst-body">${inst.body}</div>
+      </div>
+    </div>`).join("");
+
+  document.getElementById("step-content").innerHTML = `
+    <div class="step-card fade-in" style="border:1px solid ${s.color}40;">
+      <div class="step-header" style="background:${s.color};">
+        <div class="step-badge" style="color:${s.textColor};">${s.label}</div>
+        <div>
+          <div class="step-title" style="color:${s.textColor};">${s.title}</div>
+          <div class="step-subtitle" style="color:${s.textColor};">${s.subtitle}</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="diagram-col">
+          <div style="background:#0d1117;border-radius:8px;overflow:hidden;font-family:monospace;">
+            <div style="background:#1a1f2e;padding:4px 10px;font-size:10px;color:#4a6a7a;border-bottom:1px solid #2a3540;">Blender · ${s.label === 'STEP 1A' ? 'Edit Mode — Bezier Curve' : s.label === 'STEP 1B' ? 'Object Mode — Screw Modifier' : s.label === 'STEP 2' ? 'Object Mode — Handle Added' : 'Object Mode — Final Pitcher'}</div>
+            ${DIAGRAMS[s.diagram]()}
+            <div style="background:${dBg};padding:6px 10px;text-align:center;font-size:10px;font-weight:bold;color:${dText};letter-spacing:1px;">${dLabel}</div>
+          </div>
+        </div>
+        <div class="instructions-col">
+          ${instrHTML}
+          <div class="tip-box" style="background:#0d1a26;border-color:${s.color}60;border-left-color:${s.color};"><span style="color:${s.color};font-weight:bold;">💡 Tip: </span>${s.tip}</div>
+        </div>
+      </div>
+      <div class="screenshot-bar" style="background:#0a1520;border-top-color:${s.color}60;">
+        <span style="font-size:18px;">📸</span>
+        <span><strong>Take a screenshot now!</strong> ${s.screenshot}</span>
+      </div>
+    </div>`;
+  renderChecklist();
+}
+
+function renderChecklist() {
+  const s = STEPS[currentStep];
+  const done = s.checklist.filter((_, i) => checked[`${s.id}-${i}`]).length;
+  const total = s.checklist.length;
+  const allDone = done === total;
+  const pct = (done / total * 100).toFixed(0);
+
+  const itemsHTML = s.checklist.map((item, i) => {
+    const key = `${s.id}-${i}`;
+    const isDone = !!checked[key];
+    return `<div class="check-item" onclick="toggleCheck(${s.id},${i})" style="background:${isDone ? '#0d2018' : '#0d1117'};border-color:${isDone ? '#27ae60' : '#1e3040'};">
+      <div class="check-box" style="background:${isDone ? '#27ae60' : 'transparent'};border-color:${isDone ? '#27ae60' : '#2a3f52'};color:#fff;">${isDone ? '✓' : ''}</div>
+      <span class="check-label" style="color:${isDone ? '#7de0a0' : '#8ab8c5'};text-decoration:${isDone ? 'line-through' : 'none'};">${item}</span>
+    </div>`;
+  }).join("");
+
+  const btnBg = allDone ? s.color : "#1a2535";
+  const btnCol = allDone ? s.textColor : "#3a5060";
+  const btnText = completedSteps.has(s.id) ? "✓ Step Complete" :
+    allDone ? (currentStep < STEPS.length - 1 ? "Mark Complete & Go to Next Step →" : "🎉 Complete Project!") :
+    `Complete all ${total} items to continue`;
+
+  document.getElementById("checklist-area").innerHTML = `
+    <div class="checklist-card">
+      <div class="checklist-header">
+        <div class="checklist-title">✅ Step Checklist</div>
+        <div class="checklist-count" style="color:${allDone ? '#27ae60' : '#5a8a96'};">${done} / ${total} done</div>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${s.color};"></div></div>
+      ${itemsHTML}
+      <button class="complete-btn" onclick="completeStep()" ${allDone ? '' : 'disabled'} style="background:${btnBg};color:${btnCol};">${btnText}</button>
+    </div>`;
+}
+
+function goStep(i) {
+  currentStep = i;
+  renderTabs();
+  renderStep();
+  addChatMsg("assistant", `You're now on ${STEPS[i].label}: ${STEPS[i].title}. Ask me anything about this step! 🛠️`);
+}
+
+function toggleCheck(stepId, idx) {
+  const key = `${stepId}-${idx}`;
+  checked[key] = !checked[key];
+  renderChecklist();
+}
+
+function completeStep() {
+  const s = STEPS[currentStep];
+  completedSteps.add(s.id);
+  if (currentStep < STEPS.length - 1) {
+    currentStep++;
+    renderTabs();
+    renderStep();
+    addChatMsg("assistant", `Great job completing ${s.label}! Now you're on ${STEPS[currentStep].label}: ${STEPS[currentStep].title}. Ask if you need help! ⭐`);
+  } else {
+    document.getElementById("done-panel").classList.add("visible");
+    renderTabs();
+    addChatMsg("assistant", "🎉 You've completed all steps! Make sure your PowerPoint has all 4 screenshots with captions. Amazing work!");
+  }
+}
+
+// ══ AI CHAT ═══════════════════════════════════════════════════════════════════
+
+function addChatMsg(role, text) {
+  const msgs = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.className = role === "user" ? "msg msg-user" : "msg msg-ai";
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  if (role === "user") chatHistory.push({ role: "user", content: text });
+  else chatHistory.push({ role: "assistant", content: text });
+}
+
+function updateSendBtn() {
+  const val = document.getElementById("chat-input").value.trim();
+  const btn = document.getElementById("send-btn");
+  btn.className = val ? "active" : "";
+  btn.style.background = val ? "#f4a231" : "#2a3f52";
+  btn.style.color = val ? "#0d3b47" : "#c8dde8";
+}
+
+function quickSend(text) {
+  document.getElementById("chat-input").value = text;
+  updateSendBtn();
+  sendChat();
+}
+
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  updateSendBtn();
+  addChatMsg("user", text);
+
+  const typing = document.getElementById("typing-indicator");
+  typing.classList.add("visible");
+  document.getElementById("chat-messages").scrollTop = 9999;
+
+  const s = STEPS[currentStep];
+  const systemPrompt = `You are a friendly, encouraging Blender 3D modeling assistant helping a middle school student complete Project 4.07 "What Will You Have to Drink?" — a pitcher modeling assignment.
+
+The student is currently on: ${s.label} — ${s.title}
+Current step instructions: ${s.instructions.map(i => `${i.n}. ${i.title}`).join(", ")}
+Current tip: ${s.tip}
+
+Full project overview:
+- Step 1A: Draw a Bezier curve profile of the pitcher half, snap both ends to Z axis  
+- Step 1B: Apply Screw Modifier (Axis=Z) to create 3D pitcher body, then Apply
+- Step 2: Create handle using Extrude Along a Path with Bevel Object (circle curve)
+- Step 3: Convert both to mesh, name Pitcher_Body and Pitcher_Handle, parent handle to body (Ctrl+P), save file (Ctrl+S)
+- Submit: One PowerPoint with 4 screenshots showing each completed step
+
+Keep answers SHORT (2-4 sentences max), warm and encouraging. Use simple language for middle schoolers. Give specific, actionable Blender help. Never be negative or discouraging.`;
+
+  const messages = chatHistory.slice(-10).filter(m => m.role === "user" || m.role === "assistant");
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: messages.length > 0 ? messages : [{ role: "user", content: text }]
+      })
+    });
+    const data = await res.json();
+    typing.classList.remove("visible");
+    const reply = data.content?.[0]?.text || "Sorry, I had trouble with that. Try asking again!";
+    addChatMsg("assistant", reply);
+  } catch(e) {
+    typing.classList.remove("visible");
+    addChatMsg("assistant", "Hmm, I couldn't connect right now. Check your internet and try again!");
+  }
+}
+
+// ══ INIT ══════════════════════════════════════════════════════════════════════
+
+renderTabs();
+renderStep();
+</script>
+</body>
+</html>
