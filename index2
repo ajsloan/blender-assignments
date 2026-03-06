@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blender 3D — Assignment Hub</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #070d14; font-family: 'Trebuchet MS', Arial, sans-serif; color: #c8dde8; min-height: 100vh; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+.card { animation: fadeUp 0.4s ease forwards; opacity: 0; }
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.15s; }
+.card:nth-child(3) { animation-delay: 0.25s; }
+.card:nth-child(4) { animation-delay: 0.35s; }
+.card:nth-child(5) { animation-delay: 0.45s; }
+.card:nth-child(6) { animation-delay: 0.55s; }
+
+.assignment-card {
+  background: #0d1117;
+  border: 1px solid #1e3040;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.assignment-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.coming-soon {
+  background: #0a0f18;
+  border: 1px dashed #1e3040;
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0.55;
+}
+
+a { text-decoration: none; color: inherit; }
+a:hover { text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="background:linear-gradient(135deg,#0d3b47 0%,#061a22 100%);border-bottom:3px solid #f4a231;">
+  <div style="max-width:1000px;margin:0 auto;padding:28px 24px 24px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-size:10px;font-weight:bold;color:#f4a231;letter-spacing:3px;margin-bottom:8px;">MRS. SLOAN · TECHNOLOGY CLASS</div>
+        <div style="font-size:30px;color:#fff;font-weight:bold;line-height:1.15;margin-bottom:6px;">Blender 3D Assignments</div>
+        <div style="font-size:14px;color:#8ab8c5;font-style:italic;">Unit 4 · NURBS, Curves &amp; Surfaces</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="background:#1a6b7c;border-radius:8px;padding:12px 18px;display:inline-block;">
+          <div style="font-size:11px;color:#8ab8c5;margin-bottom:4px;">Each assignment includes</div>
+          <div style="font-size:12px;color:#fff;font-weight:bold;">📸 Screenshots &nbsp;·&nbsp; 🤖 AI Help &nbsp;·&nbsp; ✅ Checklists</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unit progress bar -->
+    <div style="margin-top:22px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:11px;color:#5a8a96;font-weight:bold;letter-spacing:1px;">UNIT 4 PROGRESS</span>
+        <span style="font-size:11px;color:#f4a231;">1 of 4 activities available</span>
+      </div>
+      <div style="height:6px;background:#1a2535;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:25%;background:linear-gradient(90deg,#f4a231,#e8921a);border-radius:3px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div style="max-width:1000px;margin:0 auto;padding:28px 24px 48px;">
+
+  <!-- Section label -->
+  <div style="font-size:11px;font-weight:bold;color:#5a8a96;letter-spacing:2px;margin-bottom:16px;">UNIT 4 ACTIVITIES</div>
+
+  <!-- Assignment grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:40px;">
+
+    <!-- 4.07 PITCHER — ACTIVE -->
+    <div class="card">
+      <a href="./4-07-pitcher/">
+        <div class="assignment-card" style="border-color:#f4a23140;">
+          <!-- Color bar -->
+          <div style="height:5px;background:linear-gradient(90deg,#f4a231,#e8921a);"></div>
+          <!-- Card header -->
+          <div style="padding:16px 18px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="background:#f4a23120;border:1px solid #f4a23150;color:#f4a231;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:20px;letter-spacing:1px;">PROJECT 4.07</div>
+              <div style="background:#27ae6020;border:1px solid #27ae6050;color:#27ae60;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:20px;">✓ Available</div>
+            </div>
+            <!-- Pitcher mini diagram -->
+            <div style="background:#0a0f1a;border-radius:8px;padding:8px;margin-bottom:12px;">
+              <svg viewBox="0 0 120 90" style="width:100%;display:block;">
+                <path d="M30,82 Q28,65 30,48 Q32,30 40,22 Q46,18 52,18 Q58,18 64,22 Q72,30 74,48 Q76,65 74,82 Z" fill="#1a6b7c" fill-opacity=".5"/>
+                <path d="M30,82 Q28,65 30,48 Q32,30 40,22" fill="none" stroke="#28a0b5" stroke-width="1.5"/>
+                <path d="M74,82 Q76,65 74,48 Q72,30 64,22" fill="none" stroke="#28a0b5" stroke-width="1.5"/>
+                <ellipse cx="52" cy="82" rx="22" ry="4" fill="#1a6b7c" stroke="#28a0b5" stroke-width="1.5"/>
+                <ellipse cx="52" cy="18" rx="12" ry="3" fill="#1a6b7c" stroke="#28a0b5" stroke-width="1.5"/>
+                <path d="M74,35 Q95,35 95,52 Q95,69 74,69" fill="none" stroke="#f4a231" stroke-width="7" stroke-linecap="round"/>
+                <path d="M74,35 Q95,35 95,52 Q95,69 74,69" fill="none" stroke="#0a0f1a" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div style="font-size:17px;font-weight:bold;color:#fff;margin-bottom:4px;">What Will You Have to Drink?</div>
+            <div style="font-size:12px;color:#8ab8c5;line-height:1.5;margin-bottom:14px;">Create a 3D pitcher with handle using Bezier curves, the Screw Modifier, and Extrude Along a Path.</div>
+            <!-- Tags -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+              <span style="background:#1a2535;color:#8ab8c5;font-size:10px;padding:3px 8px;border-radius:4px;">Bezier Curves</span>
+              <span style="background:#1a2535;color:#8ab8c5;font-size:10px;padding:3px 8px;border-radius:4px;">Screw Modifier</span>
+              <span style="background:#1a2535;color:#8ab8c5;font-size:10px;padding:3px 8px;border-radius:4px;">Bevel Object</span>
+            </div>
+            <!-- Footer -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #1e3040;">
+              <div style="display:flex;gap:12px;">
+                <span style="font-size:11px;color:#5a8a96;">🎯 40 pts</span>
+                <span style="font-size:11px;color:#5a8a96;">📸 4 screenshots</span>
+              </div>
+              <div style="background:#f4a231;color:#0d3b47;font-size:11px;font-weight:bold;padding:5px 14px;border-radius:5px;">Open →</div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 4.08 COMING SOON -->
+    <div class="card">
+      <div class="coming-soon">
+        <div style="height:5px;background:#1a2535;"></div>
+        <div style="padding:16px 18px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="background:#1a253520;border:1px solid #1e3040;color:#3a5060;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:20px;letter-spacing:1px;">PROJECT 4.08</div>
+            <div style="background:#1a253520;border:1px solid #1e3040;color:#3a5060;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:20px;">Coming Soon</div>
+          </div>
+          <div style="background:#0a0f1a;border-radius:8px;height:90px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:32px;opacity:.3;">🔒</span>
+          </div>
+          <div style="font-size:17px;font-weight:bold;color:#3a5060;margin-bottom:4px;">Assignment Coming Soon</div>
+          <div style="font-size:12px;color:#2a4050;line-height:1.5;margin-bottom:14px;">This assignment will be available soon. Check back later!</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+            <span style="background:#0d1117;color:#1e3040;font-size:10px;padding:3px 8px;border-radius:4px;">TBA</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #111820;">
+            <span style="font-size:11px;color:#2a4050;">Not yet available</span>
+            <div style="background:#1a2535;color:#2a4050;font-size:11px;font-weight:bold;padding:5px 14px;border-radius:5px;">Locked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.09 COMING SOON -->
+    <div class="card">
+      <div class="coming-soon">
+        <div style="height:5px;background:#1a2535;"></div>
+        <div style="padding:16px 18px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="background:#1a253520;border:1px solid #1e3040;color:#3a5060;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:20px;letter-spacing:1px;">PROJECT 4.09</div>
+            <div style="background:#1a253520;border:1px solid #1e3040;color:#3a5060;font-size:10px;font-weight:bold;padding:3px 10px;border-radius:20px;">Coming Soon</div>
+          </div>
+          <div style="background:#0a0f1a;border-radius:8px;height:90px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:32px;opacity:.3;">🔒</span>
+          </div>
+          <div style="font-size:17px;font-weight:bold;color:#3a5060;margin-bottom:4px;">Assignment Coming Soon</div>
+          <div style="font-size:12px;color:#2a4050;line-height:1.5;margin-bottom:14px;">This assignment will be available soon. Check back later!</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+            <span style="background:#0d1117;color:#1e3040;font-size:10px;padding:3px 8px;border-radius:4px;">TBA</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #111820;">
+            <span style="font-size:11px;color:#2a4050;">Not yet available</span>
+            <div style="background:#1a2535;color:#2a4050;font-size:11px;font-weight:bold;padding:5px 14px;border-radius:5px;">Locked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AI Assistant callout -->
+  <div style="background:#061a22;border:2px solid #f4a231;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="font-size:16px;font-weight:bold;color:#fff;margin-bottom:4px;">🤖 Every assignment includes an AI Assistant</div>
+      <div style="font-size:13px;color:#8ab8c5;">Stuck on a step? The AI knows every assignment and can answer any Blender question in plain language.</div>
+    </div>
+    <a href="./4-07-pitcher/" style="background:#f4a231;color:#0d3b47;font-size:13px;font-weight:bold;padding:12px 22px;border-radius:6px;text-decoration:none;white-space:nowrap;">Start Project 4.07 →</a>
+  </div>
+
+</div>
+</body>
+</html>
