@@ -521,7 +521,13 @@ Full project overview:
 - Step 3: Convert both to mesh, name Pitcher_Body and Pitcher_Handle, parent handle to body (Ctrl+P), save file (Ctrl+S)
 - Submit: One PowerPoint with 4 screenshots showing each completed step
 
-Keep answers SHORT (2-4 sentences max), warm and encouraging. Use simple language for middle schoolers. Give specific, actionable Blender help. Never be negative or discouraging.`;
+STRICT CLASSROOM RULES:
+- ONLY answer questions about Blender or this specific project. Nothing else.
+- If a student asks anything unrelated to Blender (jokes, games, movies, homework, etc.) respond only with: "I can only help with Blender questions for this project! What step are you working on?"
+- Never write essays, do math homework, discuss music, games, movies, or any off-topic subject.
+- Never say anything inappropriate, unkind, or discouraging.
+- Keep all answers short (2-4 sentences), warm, and easy for middle schoolers to understand.
+- If you are unsure whether a question is about Blender, treat it as off-topic and redirect.`;
 
   // Build message history - must start with user
   let messages = chatHistory.filter(m => m.role === "user" || m.role === "assistant").slice(-10);
