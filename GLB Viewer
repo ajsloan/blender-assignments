@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GLB 3D Viewer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #0b0b0e; overflow: hidden; }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    color: #d0d0f0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top Bar ── */
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: #080810;
+    border-bottom: 1px solid #18182a;
+    flex-shrink: 0;
+    z-index: 20;
+    gap: 12px;
+  }
+  #logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 800;
+    letter-spacing: 0.08em;
+    background: linear-gradient(90deg, #7b6fff 0%, #e040fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  #fileinfo {
+    font-size: 10px; color: #44446a;
+    letter-spacing: 0.06em;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1; text-align: center;
+  }
+  .btn {
+    background: linear-gradient(135deg, #4f3fff, #a040ff);
+    border: none; color: #fff;
+    padding: 8px 16px; border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity .2s;
+  }
+  .btn:hover { opacity: .82; }
+
+  /* ── Viewport ── */
+  #viewport {
+    flex: 1;
+    position: relative;
+    cursor: grab;
+    overflow: hidden;
+  }
+  #viewport:active { cursor: grabbing; }
+  #canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* ── Drop Overlay ── */
+  #drop-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10;
+    background: #0b0b0e;
+    transition: background .2s;
+  }
+  #drop-overlay.drag-over { background: rgba(80,50,200,.08); }
+  #drop-zone {
+    border: 2px dashed #2a2a4a;
+    border-radius: 18px;
+    padding: 64px 80px;
+    text-align: center;
+    transition: border-color .2s;
+    max-width: 480px;
+  }
+  #drop-overlay.drag-over #drop-zone { border-color: #7b6fff; }
+  .drop-icon { font-size: 52px; margin-bottom: 16px; line-height: 1; }
+  .drop-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: #c0c0ff; margin-bottom: 10px;
+  }
+  .drop-sub { font-size: 10px; color: #44446a; line-height: 1.9; }
+  .drop-sub code {
+    background: #16162a; border-radius: 4px;
+    padding: 1px 5px; color: #8888cc;
+  }
+
+  /* ── Loading ── */
+  #loading {
+    display: none;
+    position: absolute; inset: 0;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px;
+    background: rgba(11,11,14,.75);
+    z-index: 12;
+    backdrop-filter: blur(4px);
+  }
+  #loading.show { display: flex; }
+  .spinner {
+    width: 42px; height: 42px;
+    border: 2px solid #1e1e38;
+    border-top-color: #7b6fff;
+    border-radius: 50%;
+    animation: spin .75s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .load-text { font-size: 10px; color: #555588; letter-spacing: .12em; }
+
+  /* ── Error Toast ── */
+  #error-toast {
+    display: none;
+    position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%);
+    background: #2a0a1a; border: 1px solid #aa2244;
+    color: #ff6688; font-size: 10px; letter-spacing: .06em;
+    padding: 10px 20px; border-radius: 8px;
+    z-index: 20;
+  }
+  #error-toast.show { display: block; }
+
+  /* ── Hint Bar ── */
+  #hints {
+    display: none;
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    gap: 18px;
+    background: rgba(8,8,16,.85);
+    border: 1px solid #18182a;
+    border-radius: 8px; padding: 8px 22px;
+    font-size: 9px; color: #44446a;
+    letter-spacing: .07em; z-index: 15;
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+  #hints.show { display: flex; }
+  #hints span { display: flex; align-items: center; gap: 7px; }
+  .kb {
+    background: #14142a; border: 1px solid #2a2a4a;
+    border-radius: 4px; padding: 2px 6px;
+    font-size: 8px; color: #6666aa;
+  }
+
+  /* ── Stats ── */
+  #stats {
+    display: none;
+    position: absolute; top: 12px; left: 16px;
+    background: rgba(8,8,16,.8);
+    border: 1px solid #18182a;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 9px; color: #555588;
+    line-height: 1.9; z-index: 15;
+    backdrop-filter: blur(6px);
+  }
+  #stats.show { display: block; }
+  #stats b { color: #8888cc; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div id="logo">GLB VIEWER</div>
+  <div id="fileinfo">no file loaded — drop a .glb or .gltf file</div>
+  <label>
+    <input type="file" id="fileinput" accept=".glb,.gltf" style="display:none" />
+    <span class="btn">↑ OPEN FILE</span>
+  </label>
+</div>
+
+<!-- Viewport -->
+<div id="viewport">
+  <canvas id="canvas"></canvas>
+
+  <!-- Drop overlay -->
+  <div id="drop-overlay">
+    <div id="drop-zone">
+      <div class="drop-icon">⬡</div>
+      <div class="drop-title">Drop your GLB here</div>
+      <div class="drop-sub">
+        Supports <code>.glb</code> and <code>.gltf</code> formats<br><br>
+        Export from Blender 5:<br>
+        <code>File → Export → glTF 2.0 → GLB (.glb)</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="load-text">LOADING MODEL…</div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-toast">⚠ Could not load file. Make sure it's a valid .glb or .gltf.</div>
+
+  <!-- Stats -->
+  <div id="stats"></div>
+
+  <!-- Hints -->
+  <div id="hints">
+    <span><span class="kb">DRAG</span> Orbit</span>
+    <span><span class="kb">SCROLL</span> Zoom</span>
+    <span><span class="kb">RIGHT DRAG</span> Pan</span>
+    <span><span class="kb">ALT+DRAG</span> Pan</span>
+    <span><span class="kb">R</span> Reset</span>
+  </div>
+</div>
+
+<!-- Three.js + GLTFLoader via importmap -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+// ── DOM refs ──
+const canvas      = document.getElementById('canvas');
+const viewport    = document.getElementById('viewport');
+const dropOverlay = document.getElementById('drop-overlay');
+const loadingEl   = document.getElementById('loading');
+const hintsEl     = document.getElementById('hints');
+const statsEl     = document.getElementById('stats');
+const errorEl     = document.getElementById('error-toast');
+const fileinput   = document.getElementById('fileinput');
+const fileinfoEl  = document.getElementById('fileinfo');
+
+// ── Scene setup ──
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0b0e);
+
+// Grid
+const grid = new THREE.GridHelper(16, 24, 0x222236, 0x16162a);
+grid.position.y = -2;
+scene.add(grid);
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const key = new THREE.DirectionalLight(0xffffff, 1.4);
+key.position.set(6, 10, 6);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x8899ff, 0.5);
+fill.position.set(-6, 2, -4);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffccaa, 0.25);
+rim.position.set(0, -4, -6);
+scene.add(rim);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 2000);
+
+// ── Resize ──
+function resize() {
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(viewport);
+resize();
+
+// ── Orbit state ──
+let rotX = 0.35, rotY = 0.6, zoomDist = 5;
+let panX = 0, panY = 0;
+let isDrag = false, isPan = false;
+let lastX = 0, lastY = 0;
+
+function updateCamera() {
+  camera.position.x = Math.sin(rotY) * Math.cos(rotX) * zoomDist + panX;
+  camera.position.y = Math.sin(rotX) * zoomDist + panY;
+  camera.position.z = Math.cos(rotY) * Math.cos(rotX) * zoomDist;
+  camera.lookAt(panX, panY, 0);
+}
+
+// ── Mouse controls ──
+viewport.addEventListener('mousedown', e => {
+  if (e.button === 2 || e.altKey) isPan = true;
+  else isDrag = true;
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener('mousemove', e => {
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  if (isDrag) {
+    rotY += dx * 0.007;
+    rotX = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, rotX + dy * 0.007));
+  }
+  if (isPan) { panX -= dx * 0.004 * (zoomDist / 5); panY += dy * 0.004 * (zoomDist / 5); }
+});
+window.addEventListener('mouseup', () => { isDrag = false; isPan = false; });
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoomDist = Math.max(0.3, Math.min(80, zoomDist * (1 + e.deltaY * 0.001)));
+}, { passive: false });
+viewport.addEventListener('contextmenu', e => e.preventDefault());
+
+// ── Touch controls ──
+let lastTouchDist = null;
+viewport.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isDrag = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    isDrag = false;
+    lastTouchDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+  }
+}, { passive: true });
+viewport.addEventListener('touchmove', e => {
+  if (e.touches.length === 1 && isDrag) {
+    const dx = e.touches[0].clientX - lastX, dy = e.touches[0].clientY - lastY;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    rotY += dx * 0.007;
+    rotX = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, rotX + dy * 0.007));
+  } else if (e.touches.length === 2) {
+    const d = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    if (lastTouchDist) zoomDist = Math.max(0.3, Math.min(80, zoomDist * (lastTouchDist / d)));
+    lastTouchDist = d;
+  }
+}, { passive: true });
+viewport.addEventListener('touchend', () => { isDrag = false; lastTouchDist = null; });
+
+// ── Keyboard ──
+window.addEventListener('keydown', e => {
+  if (e.key === 'r' || e.key === 'R') resetView();
+});
+
+// ── Loaders ──
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/');
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+let currentModel = null;
+
+function resetView(box) {
+  if (box) {
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    zoomDist = maxDim * 2.2;
+  }
+  rotX = 0.35; rotY = 0.6;
+  panX = 0; panY = 0;
+}
+
+function countMeshStats(model) {
+  let meshes = 0, tris = 0, verts = 0;
+  model.traverse(obj => {
+    if (obj.isMesh) {
+      meshes++;
+      const geo = obj.geometry;
+      if (geo.index) tris += geo.index.count / 3;
+      else tris += geo.attributes.position.count / 3;
+      verts += geo.attributes.position.count;
+    }
+  });
+  return { meshes, tris: Math.round(tris), verts };
+}
+
+function loadFile(file) {
+  loadingEl.classList.add('show');
+  errorEl.classList.remove('show');
+  const url = URL.createObjectURL(file);
+
+  gltfLoader.load(url, gltf => {
+    if (currentModel) scene.remove(currentModel);
+
+    const model = gltf.scene;
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scale = 3 / maxDim;
+    model.scale.setScalar(scale);
+    model.position.sub(center.multiplyScalar(scale));
+
+    scene.add(model);
+    currentModel = model;
+    URL.revokeObjectURL(url);
+
+    const scaledBox = new THREE.Box3().setFromObject(model);
+    resetView(scaledBox);
+
+    // Update UI
+    loadingEl.classList.remove('show');
+    dropOverlay.style.display = 'none';
+    hintsEl.classList.add('show');
+    fileinfoEl.textContent = file.name;
+
+    const st = countMeshStats(model);
+    statsEl.innerHTML = `<b>${file.name.replace(/\.[^.]+$/, '')}</b><br>meshes: <b>${st.meshes}</b>&nbsp;&nbsp;tris: <b>${st.tris.toLocaleString()}</b>&nbsp;&nbsp;verts: <b>${st.verts.toLocaleString()}</b>`;
+    statsEl.classList.add('show');
+
+    grid.position.y = scaledBox.min.y - 0.05;
+
+  }, undefined, err => {
+    console.error(err);
+    loadingEl.classList.remove('show');
+    errorEl.classList.add('show');
+    setTimeout(() => errorEl.classList.remove('show'), 4000);
+    URL.revokeObjectURL(url);
+  });
+}
+
+// ── Drop / File input ──
+viewport.addEventListener('dragover', e => { e.preventDefault(); dropOverlay.classList.add('drag-over'); });
+viewport.addEventListener('dragleave', () => dropOverlay.classList.remove('drag-over'));
+viewport.addEventListener('drop', e => {
+  e.preventDefault();
+  dropOverlay.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+fileinput.addEventListener('change', () => {
+  if (fileinput.files[0]) loadFile(fileinput.files[0]);
+});
+
+// ── Render loop ──
+function animate() {
+  requestAnimationFrame(animate);
+  updateCamera();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
