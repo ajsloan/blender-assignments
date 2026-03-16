@@ -481,56 +481,95 @@ function addChatMsg(role, text) {
   else chatHistory.push({ role: "assistant", content: text });
 }
 
+// ── Rate limiting: max 15 messages per session ───────────────────────────────
+let messageCount = 0;
+const MAX_MESSAGES = 15;
+
 function updateSendBtn() {
   const val = document.getElementById("chat-input").value.trim();
   const btn = document.getElementById("send-btn");
-  btn.className = val ? "active" : "";
-  btn.style.background = val ? "#f4a231" : "#2a3f52";
-  btn.style.color = val ? "#0d3b47" : "#c8dde8";
+  const limited = messageCount >= MAX_MESSAGES;
+  btn.className = (val && !limited) ? "active" : "";
+  btn.style.background = (val && !limited) ? "#f4a231" : "#2a3f52";
+  btn.style.color = (val && !limited) ? "#0d3b47" : "#c8dde8";
 }
 
 function quickSend(text) {
+  if (messageCount >= MAX_MESSAGES) return;
   document.getElementById("chat-input").value = text;
   updateSendBtn();
   sendChat();
 }
 
 async function sendChat() {
+  // Rate limit check
+  if (messageCount >= MAX_MESSAGES) {
+    addChatMsg("assistant", "You have reached the message limit for this session. Reload the page to start a new session, or ask your teacher for help!");
+    document.getElementById("chat-input").disabled = true;
+    document.getElementById("send-btn").disabled = true;
+    return;
+  }
+
   const input = document.getElementById("chat-input");
   const text = input.value.trim();
   if (!text) return;
+
+  // Basic client-side filter for obviously off-topic content
+  const offTopicPatterns = [
+    /(joke|jokes|funny|meme|tiktok|youtube|minecraft|fortnite|roblox|homework|math|english|history|science|essay|write me|tell me a story|what is your name|who are you|how are you|girlfriend|boyfriend|dating|sex|drugs|violence|fight|kill|hate)/i
+  ];
+  const isOffTopic = offTopicPatterns.some(p => p.test(text));
+  if (isOffTopic) {
+    addChatMsg("user", text);
+    input.value = "";
+    updateSendBtn();
+    addChatMsg("assistant", "I can only help with Blender questions for this project! What step are you working on?");
+    return;
+  }
+
+  messageCount++;
   input.value = "";
   updateSendBtn();
   addChatMsg("user", text);
+
+  // Show remaining messages warning at 10
+  if (messageCount === 10) {
+    const warning = document.createElement("div");
+    warning.style.cssText = "font-size:11px;color:#e8921a;text-align:center;padding:4px;";
+    warning.textContent = "5 messages remaining this session.";
+    document.getElementById("chat-messages").appendChild(warning);
+  }
 
   const typing = document.getElementById("typing-indicator");
   typing.classList.add("visible");
   document.getElementById("chat-messages").scrollTop = 9999;
 
   const s = STEPS[currentStep];
-  const systemPrompt = `You are a friendly, encouraging Blender 3D modeling assistant helping a middle school student complete Project 4.07 "What Will You Have to Drink?" — a pitcher modeling assignment.
+  const systemPrompt = `You are a Blender 3D modeling AI assistant for a middle school classroom. Your sole purpose is helping students complete Project 4.07 — making a 3D pitcher in Blender.
 
 The student is currently on: ${s.label} — ${s.title}
-Current step instructions: ${s.instructions.map(i => `${i.n}. ${i.title}`).join(", ")}
-Current tip: ${s.tip}
+Current step: ${s.instructions.map(i => `${i.n}. ${i.title}`).join(", ")}
+Tip: ${s.tip}
 
-Full project overview:
-- Step 1A: Draw a Bezier curve profile of the pitcher half, snap both ends to Z axis  
-- Step 1B: Apply Screw Modifier (Axis=Z) to create 3D pitcher body, then Apply
-- Step 2: Create handle using Extrude Along a Path with Bevel Object (circle curve)
-- Step 3: Convert both to mesh, name Pitcher_Body and Pitcher_Handle, parent handle to body (Ctrl+P), save file (Ctrl+S)
-- Submit: One PowerPoint with 4 screenshots showing each completed step
+Project overview:
+- Step 1A: Draw a Bezier curve profile, snap both ends to Z axis
+- Step 1B: Apply Screw Modifier (Axis=Z) to create 3D pitcher body
+- Step 2: Create handle using Bevel Object (circle curve along a path)
+- Step 3: Convert to mesh, name Pitcher_Body and Pitcher_Handle, parent handle to body (Ctrl+P), save (Ctrl+S)
+- Submit: One PowerPoint with 4 screenshots
 
-STRICT CLASSROOM RULES:
-- ONLY answer questions about Blender or this specific project. Nothing else.
-- If a student asks anything unrelated to Blender (jokes, games, movies, homework, etc.) respond only with: "I can only help with Blender questions for this project! What step are you working on?"
-- Never write essays, do math homework, discuss music, games, movies, or any off-topic subject.
-- Never say anything inappropriate, unkind, or discouraging.
-- Keep all answers short (2-4 sentences), warm, and easy for middle schoolers to understand.
-- If you are unsure whether a question is about Blender, treat it as off-topic and redirect.`;
+STRICT RULES — follow these exactly, no exceptions:
+1. ONLY answer questions directly about Blender 3D software or this specific assignment.
+2. If the message is not clearly about Blender or this project, respond ONLY with: "I can only help with Blender questions for this project! What step are you working on?"
+3. Never answer questions about other subjects, games, entertainment, people, current events, or anything personal.
+4. Never produce creative writing, stories, poems, jokes, or lists unrelated to Blender.
+5. Never say anything a parent or teacher would find inappropriate.
+6. Keep every answer to 2-4 sentences maximum.
+7. Be warm and encouraging but stay strictly on topic.
+8. When in doubt, redirect to Blender.`;
 
   // Build message history - must start with user
-  let messages = chatHistory.filter(m => m.role === "user" || m.role === "assistant").slice(-10);
+  let messages = chatHistory.filter(m => m.role === "user" || m.role === "assistant").slice(-8);
   while (messages.length > 0 && messages[0].role === "assistant") messages.shift();
   if (messages.length === 0) messages = [{ role: "user", content: text }];
 
@@ -540,7 +579,7 @@ STRICT CLASSROOM RULES:
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
+        max_tokens: 300,
         system: systemPrompt,
         messages: messages
       })
@@ -549,9 +588,19 @@ STRICT CLASSROOM RULES:
     typing.classList.remove("visible");
     const reply = data.content?.[0]?.text || "Sorry, I had trouble with that. Try asking again!";
     addChatMsg("assistant", reply);
+
+    // Disable input if limit reached
+    if (messageCount >= MAX_MESSAGES) {
+      document.getElementById("chat-input").disabled = true;
+      document.getElementById("chat-input").placeholder = "Message limit reached. Reload to start over.";
+      document.getElementById("send-btn").disabled = true;
+      addChatMsg("assistant", "You have reached the message limit for this session. Great work on the project — ask your teacher if you still need help!");
+    }
   } catch(e) {
+    messageCount--; // refund on error
     typing.classList.remove("visible");
-    addChatMsg("assistant", "Hmm, I couldn't connect right now. Check your internet and try again!");
+    addChatMsg("assistant", "Hmm, I couldn\'t connect right now. Check your internet and try again!");
+    updateSendBtn();
   }
 }
 
